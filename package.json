@@ -61,5 +61,10 @@
     "prisma@6.19.3": true,
     "@prisma/engines@6.19.3": true,
     "protobufjs@7.6.6": true
+  },
+  "homepage": "https://ai-tutor-german.vercel.app",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/jahongir889000-ctrl/ai-tutor-german.git"
   }
 }

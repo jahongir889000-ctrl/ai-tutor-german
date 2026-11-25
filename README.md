@@ -1,5 +1,9 @@
 # DeutschMentor — персональный AI-репетитор немецкого
 
+🌐 **Сайт:** https://ai-tutor-german.vercel.app
+
+[![Deployed on Vercel](https://img.shields.io/badge/Vercel-ai--tutor--german.vercel.app-000?logo=vercel)](https://ai-tutor-german.vercel.app)
+
 SaaS на **Next.js 16** (App Router) + **shadcn/ui**, AI на **Gemini `gemini-3.5-flash-lite`**, оплата **Stripe**, БД **Postgres (Neon) + Prisma**, авторизация **Auth.js** (email/пароль + Google). Интерфейс RU / EN.
 
 ## Тарифы
@@ -64,3 +68,9 @@ npm run stripe:listen   # stripe listen --forward-to localhost:3000/api/stripe/w
 - `npm test` — юнит-тесты (vitest)
 - `npm run lint`, `npm run build`
 - `npm run db:studio` — Prisma Studio
+
+## Деплой
+
+Продакшен: **https://ai-tutor-german.vercel.app** (Vercel, проект подключён к этому репозиторию — каждый пуш в `main` деплоится автоматически).
+База и хранилище — Neon (ветка `production`). Переменные окружения заданы в Vercel → Settings → Environment Variables.
+
