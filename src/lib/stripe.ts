@@ -10,8 +10,13 @@ export function stripe(): Stripe {
   return client;
 }
 
+/** Public origin of the app: explicit NEXT_PUBLIC_APP_URL, else Vercel's production domain, else localhost. */
 export function appUrl(path = "") {
-  return (process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000").replace(/\/$/, "") + path;
+  const origin =
+    process.env.NEXT_PUBLIC_APP_URL ||
+    (process.env.VERCEL_PROJECT_PRODUCTION_URL ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}` : "") ||
+    "http://localhost:3000";
+  return origin.replace(/\/$/, "") + path;
 }
 
 const PRO_STATUSES = new Set(["active", "trialing", "past_due"]);
