@@ -1,0 +1,182 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DATABASE_URL_UNPOOLED")
+}
+
+enum Plan {
+  FREE
+  PRO
+}
+
+enum MistakeType {
+  GRAMMAR
+  VOCABULARY
+  SPELLING
+  PRONUNCIATION
+}
+
+enum LessonStatus {
+  IN_PROGRESS
+  COMPLETED
+}
+
+// ---------- Auth.js ----------
+
+model User {
+  id            String    @id @default(cuid())
+  name          String?
+  email         String    @unique
+  emailVerified DateTime?
+  image         String?
+  passwordHash  String?
+
+  // learning profile
+  timezone     String  @default("UTC")
+  locale       String  @default("ru")
+  currentLevel String  @default("a1-1")
+  onboarded    Boolean @default(false)
+
+  // billing
+  plan                 Plan      @default(FREE)
+  stripeCustomerId     String?   @unique
+  stripeSubscriptionId String?   @unique
+  subscriptionStatus   String?
+  currentPeriodEnd     DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  accounts       Account[]
+  sessions       Session[]
+  usage          DailyUsage[]
+  lessons        LessonProgress[]
+  quizAttempts   QuizAttempt[]
+  mistakes       Mistake[]
+  vocab          VocabItem[]
+  chatMessages   ChatMessage[]
+}
+
+model Account {
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([provider, providerAccountId])
+}
+
+model Session {
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model VerificationToken {
+  identifier String
+  token      String
+  expires    DateTime
+
+  @@id([identifier, token])
+}
+
+// ---------- Learning ----------
+
+/// One row per user per "practice day". A day starts at 12:00 in the user's timezone.
+model DailyUsage {
+  id           String   @id @default(cuid())
+  userId       String
+  windowStart  DateTime
+  secondsUsed  Int      @default(0)
+  lastBeatAt   DateTime?
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, windowStart])
+}
+
+model LessonProgress {
+  id          String       @id @default(cuid())
+  userId      String
+  topicId     String
+  status      LessonStatus @default(IN_PROGRESS)
+  score       Int?
+  startedAt   DateTime     @default(now())
+  completedAt DateTime?
+  user        User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, topicId])
+}
+
+model QuizAttempt {
+  id        String   @id @default(cuid())
+  userId    String
+  topicId   String?
+  questions Json
+  answers   Json
+  score     Int
+  total     Int
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt])
+}
+
+model Mistake {
+  id          String      @id @default(cuid())
+  userId      String
+  type        MistakeType
+  original    String
+  correction  String
+  explanation String
+  topicId     String?
+  createdAt   DateTime    @default(now())
+  user        User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt])
+}
+
+model VocabItem {
+  id           String   @id @default(cuid())
+  userId       String
+  de           String
+  translation  String
+  example      String?
+  topicId      String?
+  strength     Int      @default(0)
+  nextReviewAt DateTime @default(now())
+  createdAt    DateTime @default(now())
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, de])
+}
+
+model ChatMessage {
+  id        String   @id @default(cuid())
+  userId    String
+  role      String
+  content   String
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt])
+}
